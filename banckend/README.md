@@ -1,2 +1,2 @@
-# minhasfinancas-api
-Spring Boot with React
+# Backend
+Spring Boot
