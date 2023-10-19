@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import Card from '../components/card'
 import FormGroup from '../components/form-group'
 import { useNavigate } from 'react-router-dom'
+import { mensagemSucesso, mensagemErro, mensagemAlerta } from '../components/toastr'
+
+import UsuarioService from "../app/service/usuarioService";
 
 function CadastroUsuario() {
     const [nome, setNome] = useState('');
@@ -11,8 +14,58 @@ function CadastroUsuario() {
 
     const navigate = useNavigate();
 
+    const service = new UsuarioService();
+
+    const validar = () => {
+        const msgs = []
+
+        if(!nome){
+            msgs.push('O campo Nome é obrigatório');
+        }
+
+        if(!email){
+            msgs.push('O campo Email é obrigatório');
+        } else if( !email.match(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/ // REGEX
+        ) ){
+            msgs.push('Informe um Email válido.')
+        }
+
+        if(!senha || !senhaRepeticao){
+            msgs.push('Digite a senha 2x')
+        } else if( senha !== senhaRepeticao ){
+            msgs.push('As senhas não batem.')
+        }
+
+        return msgs;
+    }
+
     const cadastrar = () => {
-        console.log({ nome, email, senha, senhaRepeticao });
+        
+        const msgs = validar();
+
+        if( msgs && msgs.length > 0){
+            msgs.forEach( (msg, index) => {
+                mensagemAlerta(msg)
+            });
+            return false;
+        }
+
+        const usuario = { 
+            nome: nome, 
+            email: email, 
+            senha: senha 
+        }
+
+        console.log(usuario)
+        
+        service.salvar(usuario)
+                .then( () => {
+                    mensagemSucesso('Usuário cadastrado com sucesso! Faça o login para acessar o sistema.');
+                    navigate('/login')
+                })
+                .catch(error => {
+                    mensagemErro(error.response.data)
+                })
     }
 
     const cancelarCadastro = () => {
@@ -57,8 +110,12 @@ function CadastroUsuario() {
                                     value={senhaRepeticao}
                                     onChange={e => setSenhaRepeticao(e.target.value)} />
                             </FormGroup>
-                            <button onClick={cadastrar} className="btn btn-success">Salvar</button>
-                            <button onClick={cancelarCadastro} className="btn btn-danger">Cancelar</button>
+                            <button onClick={cadastrar} className="btn btn-success">
+                                <i className="pi pi-save"></i> Salvar
+                            </button>
+                            <button onClick={cancelarCadastro} className="btn btn-danger">
+                                <i className="pi pi-times"></i> Cancelar
+                            </button>
                         </div>
                     </div>
                 </div>

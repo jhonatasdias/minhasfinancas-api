@@ -1,28 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
 import Card from '../components/card'
 import FormGroup from '../components/form-group'
 import { useNavigate } from 'react-router-dom'
 
 import UsuarioService from "../app/service/usuarioService";
+//import LocalStorageService from "../app/service/localstorageService";
+import { mensagemErro, mensagemSucesso } from '../components/toastr'
+import { AuthContext } from '../main/provedorAutenticacao'
 
 function Login() {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
-    const [mensagemErro, setMensagemErro] = useState(null);
 
     const navigate = useNavigate();
     const service = new UsuarioService();
+
+    //new method
+    const authContext = useContext(AuthContext);
 
     const entrar = () => {
         service.autenticar({
             email,
             senha
         }).then(response => {
-            localStorage.setItem('_usuario_logado', JSON.stringify(response.data));
+            mensagemSucesso('Usuario Logado com Sucesso')
+            //LocalStorageService.adicionarItem('_usuario_logado', response.data)
+            
+            //new method
+            authContext.iniciarSessao(response.data);
             navigate('/home');
         }).catch(e => {
-            setMensagemErro(e.response.data);
+            mensagemErro(e.response.data)
         });
     }
 
@@ -76,5 +85,7 @@ function Login() {
         </div>
     );
 }
+
+//Login.contextType = AuthContext;
 
 export default Login;
